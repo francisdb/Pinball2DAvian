@@ -1,7 +1,6 @@
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
-use bevy_rapier2d::prelude::*;
-
+use avian2d::prelude::*;
 use super::BottomWall;
 
 pub struct BallPlugin;
@@ -14,7 +13,7 @@ impl Plugin for BallPlugin {
 }
 
 #[derive(Component)]
-struct Ball;
+pub(crate) struct Ball;
 
 fn spawn_ball(mut commands: Commands) {
     let ball_pos = Vec2::new(
@@ -26,45 +25,46 @@ fn spawn_ball(mut commands: Commands) {
         radius: crate::PIXELS_PER_METER * 0.03,
         center: Vec2::ZERO,
     };
+    let bevy_shape = Circle::new(shape_ball.radius);
 
     commands
         .spawn((
-            ShapeBundle {
-                path: GeometryBuilder::build_as(&shape_ball),
-                ..default()
-            },
-            Fill::color(Color::BLACK),
-            Stroke::new(bevy::color::palettes::css::TEAL, 2.0),
-        ))
-        .insert(RigidBody::Dynamic)
-        .insert(Sleeping::disabled())
-        .insert(Ccd::enabled())
-        .insert(Collider::ball(shape_ball.radius))
-        .insert(Transform::from_xyz(ball_pos.x, ball_pos.y, 0.0))
-        .insert(ActiveEvents::COLLISION_EVENTS)
-        .insert(Restitution::coefficient(0.7))
-        .insert(Ball);
+            Name::from("Ball"),
+            ShapeBuilder::with(&shape_ball)
+                .fill(Color::BLACK)
+                .stroke((bevy::color::palettes::css::TEAL, 2.0))
+                .build(),
+            Transform::from_xyz(ball_pos.x, ball_pos.y, 0.0),
+            Collider::circle(shape_ball.radius),
+            CollisionEventsEnabled,
+            Restitution::from(0.7),
+            // a standard pinball ball mass is about 80 grams
+            //MassPropertiesBundle::from_shape(&bevy_shape, 10.0),
+            RigidBody::Dynamic,
+            Ball,
+            SleepingDisabled
+        ));
+        //.insert(Ccd::enabled()) ;
 }
 
 fn handle_ball_intersections_with_bottom_wall(
-    rapier_context: ReadDefaultRapierContext,
-    query_ball: Query<Entity, With<Ball>>,
-    query_bottom_wall: Query<Entity, With<BottomWall>>,
-    mut commands: Commands,
+    mut collision_reader: MessageReader<CollisionStart>,
+    query_ball: Query<&Ball>,
+    query_bottom_wall: Query<&BottomWall>,
+    mut commands: Commands
 ) {
-    let mut should_spawn_ball = false;
-
-    for entity_bottom_wall in query_bottom_wall.iter() {
-        for entity_ball in query_ball.iter() {
-            /* Find the intersection pair, if it exists, between two colliders. */
-            if rapier_context.intersection_pair(entity_bottom_wall, entity_ball) == Some(true) {
-                commands.entity(entity_ball).despawn();
-                should_spawn_ball = true;
-            }
+    let mut ball_entity = None;
+    for event in collision_reader.read() {
+        if let (Some(entity1), Some(entity2)) = (event.body1, event.body2) {
+            if query_ball.contains(entity1) && query_bottom_wall.contains(entity2) {
+                ball_entity = Some(entity1)
+            } else if query_ball.contains(entity2) && query_bottom_wall.contains(entity1) {
+                ball_entity = Some(entity2)
+            };
         }
     }
-
-    if should_spawn_ball {
+    if let Some(ball) = ball_entity {
+        commands.entity(ball).despawn();
         spawn_ball(commands);
     }
 }
