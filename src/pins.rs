@@ -1,6 +1,6 @@
+use avian2d::prelude::*;
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
-use avian2d::prelude::*;
 
 pub struct PinsPlugin;
 
@@ -34,11 +34,16 @@ fn spawn_pins(mut commands: Commands) {
     for i in 0..pins_pos.len() {
         let pin_pos = pins_pos[i];
 
-        spawn_single_pin(format!("Pin{}",i) ,&mut commands, pin_pos, None);
+        spawn_single_pin(format!("Pin{}", i), &mut commands, pin_pos, None);
     }
 }
 
-fn spawn_single_pin(name: String, commands: &mut Commands, position: Vec2, timestamp_last_hit: Option<f64>) {
+fn spawn_single_pin(
+    name: String,
+    commands: &mut Commands,
+    position: Vec2,
+    timestamp_last_hit: Option<f64>,
+) {
     let shape_pin = shapes::Circle {
         radius: crate::PIXELS_PER_METER * 0.05,
         center: Vec2::ZERO,
@@ -52,23 +57,22 @@ fn spawn_single_pin(name: String, commands: &mut Commands, position: Vec2, times
         color = bevy::color::palettes::css::TEAL;
     }
 
-    commands
-        .spawn((
-            Name::from(name),
-            ShapeBuilder::with(&shape_pin)
-                .fill(Color::BLACK)
-                .stroke((color, 2.0))
-                .build(),
-            Transform::from_xyz(position.x, position.y, 0.0),
-            RigidBody::Static,
-            //MassPropertiesBundle::from_shape(&bevy_shape, 1.0),
-            Restitution::new(0.7),
-            Collider::circle(shape_pin.radius),
-            Pin {
-                timestamp_last_hit: temp_timestamp_last_hit,
-                position: position,
-            }
-        ));
+    commands.spawn((
+        Name::from(name),
+        ShapeBuilder::with(&shape_pin)
+            .fill(Color::BLACK)
+            .stroke((color, 2.0))
+            .build(),
+        Transform::from_xyz(position.x, position.y, 0.0),
+        RigidBody::Static,
+        //MassPropertiesBundle::from_shape(&bevy_shape, 1.0),
+        Restitution::new(0.7),
+        Collider::circle(shape_pin.radius),
+        Pin {
+            timestamp_last_hit: temp_timestamp_last_hit,
+            position: position,
+        },
+    ));
 }
 
 fn respawn_pin_to_toggle_color(
@@ -102,7 +106,7 @@ fn handle_pin_events(
                     let pos = pin.position;
                     let timestamp_last_hit = time.elapsed_secs_f64();
                     commands.entity(entity).despawn();
-                    spawn_single_pin(name.into(),&mut commands, pos, Some(timestamp_last_hit));
+                    spawn_single_pin(name.into(), &mut commands, pos, Some(timestamp_last_hit));
                 }
             }
         }

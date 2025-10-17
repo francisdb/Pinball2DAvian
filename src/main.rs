@@ -1,13 +1,10 @@
-use avian2d::math::Vector;
 use avian2d::PhysicsPlugins;
-use bevy::{
-    prelude::*,
-    window::{PresentMode},
-};
-use bevy_prototype_lyon::prelude::*;
+use avian2d::math::Vector;
 use avian2d::prelude::*;
+use bevy::{prelude::*, window::PresentMode};
 use bevy_inspector_egui::bevy_egui::EguiPlugin;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
+use bevy_prototype_lyon::prelude::*;
 
 mod ball;
 use ball::*;
@@ -48,7 +45,7 @@ fn main() {
         .add_plugins(BallPlugin)
         .add_plugins(PinsPlugin)
         .add_plugins(ShapePlugin)
-        .add_systems(Startup,setup)
+        .add_systems(Startup, setup)
         .add_plugins(PhysicsPlugins::default().with_length_unit(PIXELS_PER_METER))
         .insert_resource(Gravity(Vector::NEG_Y * 520.0))
         //.insert_resource(Gravity(Vector::NEG_Y * 9.81 * 100.0))
@@ -64,10 +61,7 @@ fn setup(mut commands: Commands) {
     commands.spawn(Camera2d::default());
 }
 
-fn exit_on_escape(
-    keyboard: Res<ButtonInput<KeyCode>>,
-    mut exit: MessageWriter<AppExit>,
-) {
+fn exit_on_escape(keyboard: Res<ButtonInput<KeyCode>>, mut exit: MessageWriter<AppExit>) {
     if keyboard.just_pressed(KeyCode::Escape) {
         exit.write(AppExit::Success);
     }

@@ -1,7 +1,7 @@
+use crate::ball::Ball;
+use avian2d::prelude::*;
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
-use avian2d::prelude::*;
-use crate::ball::Ball;
 
 pub struct LauncherPlugin;
 
@@ -25,7 +25,7 @@ fn spawn_launcher(mut commands: Commands) {
             crate::PIXELS_PER_METER * 0.05,
         ),
         origin: shapes::RectangleOrigin::Center,
-        radii: None
+        radii: None,
     };
 
     let launcher_pos = Vec2::new(
@@ -33,25 +33,21 @@ fn spawn_launcher(mut commands: Commands) {
         crate::PIXELS_PER_METER * -0.58,
     );
 
-    commands
-        .spawn((
-            Name::from("Launcher"),
-            ShapeBuilder::with(&shape_launcher)
-                .fill(Color::BLACK)
-                .stroke((bevy::color::palettes::css::TEAL, 2.0))
-                .build(),
-            RigidBody::Kinematic,
-            Collider::rectangle(
-                shape_launcher.extents.x ,
-                shape_launcher.extents.y,
-            ), 
-            //MassPropertiesBundle::from_shape(&launcher_shape, 2.0),
-            Restitution::from(0.999),
-            Transform::from_xyz(launcher_pos.x, launcher_pos.y, 0.0),
-            Launcher {
-                start_point: launcher_pos,
-            }
-        ));
+    commands.spawn((
+        Name::from("Launcher"),
+        ShapeBuilder::with(&shape_launcher)
+            .fill(Color::BLACK)
+            .stroke((bevy::color::palettes::css::TEAL, 2.0))
+            .build(),
+        RigidBody::Kinematic,
+        Collider::rectangle(shape_launcher.extents.x, shape_launcher.extents.y),
+        //MassPropertiesBundle::from_shape(&launcher_shape, 2.0),
+        Restitution::from(0.999),
+        Transform::from_xyz(launcher_pos.x, launcher_pos.y, 0.0),
+        Launcher {
+            start_point: launcher_pos,
+        },
+    ));
 }
 
 fn launcher_movement(
@@ -65,7 +61,6 @@ fn launcher_movement(
     // when released create a pulse on the ball
 
     // TODO the launcher should be a spring that compresses when space is held down
-
 
     for (launcher, mut launcher_transform) in launchers.iter_mut() {
         let mut next_ypos = launcher_transform.translation.y;
@@ -88,5 +83,4 @@ fn launcher_movement(
             ball_velocity.y = 900.0;
         }
     }
-
 }
