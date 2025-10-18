@@ -42,8 +42,8 @@ fn spawn_ball(mut commands: Commands) {
         RigidBody::Dynamic,
         Ball,
         SleepingDisabled,
+        SweptCcd::default(),
     ));
-    //.insert(Ccd::enabled()) ;
 }
 
 fn handle_ball_intersections_with_bottom_wall(
