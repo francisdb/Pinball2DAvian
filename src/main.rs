@@ -2,8 +2,8 @@ use avian2d::PhysicsPlugins;
 use avian2d::math::Vector;
 use avian2d::prelude::*;
 use bevy::{prelude::*, window::PresentMode};
-use bevy_inspector_egui::bevy_egui::EguiPlugin;
-use bevy_inspector_egui::quick::WorldInspectorPlugin;
+//use bevy_inspector_egui::bevy_egui::EguiPlugin;
+//use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_prototype_lyon::prelude::*;
 
 mod ball;
@@ -37,8 +37,8 @@ fn main() {
             }),
             ..default()
         }))
-        .add_plugins(EguiPlugin::default())
-        .add_plugins(WorldInspectorPlugin::new())
+        // .add_plugins(EguiPlugin::default())
+        // .add_plugins(WorldInspectorPlugin::new())
         .add_plugins(WallsPlugin)
         .add_plugins(LauncherPlugin)
         .add_plugins(FlippersPlugin)

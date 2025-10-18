@@ -14,14 +14,14 @@ impl Plugin for FlippersPlugin {
 
 #[derive(Component)]
 struct LeftFlipper {
-    point_of_rotation: Vec3,
-    curr_angle: f32,
+    max_angle: f32,
+    min_angle: f32,
 }
 
 #[derive(Component)]
 struct RightFlipper {
-    point_of_rotation: Vec3,
-    curr_angle: f32,
+    max_angle: f32,
+    min_angle: f32,
 }
 
 fn spawn_flippers(mut commands: Commands) {
@@ -40,95 +40,153 @@ fn spawn_flippers(mut commands: Commands) {
         crate::PIXELS_PER_METER * -0.2,
         crate::PIXELS_PER_METER * -0.4,
     );
+    let left_pivot = Vec2::new(
+        -shape_flipper.extents.x / 2.0,
+        shape_flipper.extents.y / 2.0,
+    );
 
-    commands.spawn((
-        Name::from("Flipper Left"),
-        ShapeBuilder::with(&shape_flipper)
-            .fill(Color::BLACK)
-            .stroke((bevy::color::palettes::css::TEAL, 2.0))
-            .build(),
-        RigidBody::Kinematic,
-        Collider::rectangle(shape_flipper.extents.x, shape_flipper.extents.y),
-        Restitution::from(0.99).with_combine_rule(CoefficientCombine::Max),
-        Transform::from_xyz(left_flipper_pos.x, left_flipper_pos.y, 0.0),
-        LeftFlipper {
-            point_of_rotation: Vec3::new(
-                left_flipper_pos.x - (shape_flipper.extents.x / 2.0),
-                left_flipper_pos.y + (shape_flipper.extents.y) / 2.0,
+    let left_anchor = commands
+        .spawn((
+            Name::from("Left Flipper Anchor"),
+            // ShapeBuilder::with(&shapes::Circle {
+            //     radius: 5.0,
+            //     center: Vec2::ZERO,
+            // })
+            // .fill(bevy::color::palettes::css::YELLOW)
+            // .build(),
+            RigidBody::Static,
+            Transform::from_xyz(
+                left_flipper_pos.x + left_pivot.x,
+                left_flipper_pos.y + left_pivot.y,
                 0.0,
             ),
-            curr_angle: 0.0,
-        },
-    ));
+        ))
+        .id();
+
+    let left_fliper = commands
+        .spawn((
+            Name::from("Flipper Left"),
+            ShapeBuilder::with(&shape_flipper)
+                .fill(Color::BLACK)
+                .stroke((bevy::color::palettes::css::TEAL, 2.0))
+                .build(),
+            RigidBody::Kinematic,
+            Collider::rectangle(shape_flipper.extents.x, shape_flipper.extents.y),
+            Transform::from_xyz(left_flipper_pos.x, left_flipper_pos.y, 0.0),
+            LeftFlipper {
+                max_angle: 0.3,
+                min_angle: -0.3,
+            },
+        ))
+        .id();
+
+    commands.spawn(
+        RevoluteJoint::new(left_anchor, left_fliper)
+            .with_local_anchor1(Vec2::ZERO)
+            .with_local_anchor2(left_pivot)
+            .with_angle_limits(-0.3 - 0.05, 0.3 + 0.05), // to avoid jittering we add a small margin
+    );
 
     //Spawn right flipper
     let right_flipper_pos = Vec2::new(
         crate::PIXELS_PER_METER * 0.1,
         crate::PIXELS_PER_METER * -0.4,
     );
+    let right_pivot = Vec2::new(shape_flipper.extents.x / 2.0, shape_flipper.extents.y / 2.0);
 
-    commands.spawn((
-        Name::from("Flipper Right"),
-        ShapeBuilder::with(&shape_flipper)
-            .fill(Color::BLACK)
-            .stroke((bevy::color::palettes::css::TEAL, 2.0))
-            .build(),
-        RigidBody::Kinematic,
-        Collider::rectangle(shape_flipper.extents.x, shape_flipper.extents.y),
-        Restitution::from(0.999).with_combine_rule(CoefficientCombine::Max),
-        Transform::from_xyz(right_flipper_pos.x, right_flipper_pos.y, 0.0),
-        RightFlipper {
-            point_of_rotation: Vec3::new(
-                right_flipper_pos.x + (shape_flipper.extents.x / 2.0),
-                right_flipper_pos.y + (shape_flipper.extents.y) / 2.0,
+    let right_anchor = commands
+        .spawn((
+            Name::from("Right Flipper Anchor"),
+            // ShapeBuilder::with(&shapes::Circle {
+            //     radius: 5.0,
+            //     center: Vec2::ZERO,
+            // })
+            // .fill(bevy::color::palettes::css::YELLOW)
+            // .build(),
+            RigidBody::Static,
+            Transform::from_xyz(
+                right_flipper_pos.x + right_pivot.x,
+                right_flipper_pos.y + right_pivot.y,
                 0.0,
             ),
-            curr_angle: 0.0,
-        },
-    ));
+        ))
+        .id();
+
+    let right_flipper = commands
+        .spawn((
+            Name::from("Flipper Right"),
+            ShapeBuilder::with(&shape_flipper)
+                .fill(Color::BLACK)
+                .stroke((bevy::color::palettes::css::TEAL, 2.0))
+                .build(),
+            RigidBody::Kinematic,
+            Collider::rectangle(shape_flipper.extents.x, shape_flipper.extents.y),
+            //Restitution::from(0.999).with_combine_rule(CoefficientCombine::Max),
+            Transform::from_xyz(right_flipper_pos.x, right_flipper_pos.y, 0.0),
+            RightFlipper {
+                max_angle: 0.3,
+                min_angle: -0.3,
+            },
+        ))
+        .id();
+
+    // TODO test this:
+    //   You can override the center of mass and set rotation speed directly on a kinematic body
+
+    commands.spawn(
+        RevoluteJoint::new(right_anchor, right_flipper)
+            .with_local_anchor1(Vec2::ZERO)
+            .with_local_anchor2(right_pivot)
+            .with_angle_limits(-0.3 - 0.05, 0.3 + 0.05), // to avoid jittering we add a small margin
+    );
 }
 
 fn left_flipper_movement(
     keyboard_input: Res<ButtonInput<KeyCode>>,
-    mut left_flippers: Query<(&mut LeftFlipper, &mut Transform), With<LeftFlipper>>,
+    mut flippers: Query<(&LeftFlipper, &Transform, &mut AngularVelocity), With<LeftFlipper>>,
 ) {
-    for (mut left_flipper, mut left_flipper_transform) in left_flippers.iter_mut() {
-        let mut new_angle = left_flipper.curr_angle;
+    for (flipper, transform, mut angular_velocity) in flippers.iter_mut() {
+        let current_angle = transform.rotation.to_euler(EulerRot::XYZ).2;
 
-        let change_angle = if keyboard_input.pressed(KeyCode::ArrowLeft)
-            || keyboard_input.pressed(KeyCode::ShiftLeft)
+        if keyboard_input.pressed(KeyCode::ArrowLeft) || keyboard_input.pressed(KeyCode::ShiftLeft)
         {
-            0.09
+            if current_angle < flipper.max_angle {
+                angular_velocity.0 = 15.0;
+            } else {
+                angular_velocity.0 = 0.0;
+            }
         } else {
-            -0.07
-        };
-
-        new_angle += change_angle;
-        let new_clamped_angle = new_angle.clamp(-0.3, 0.3);
-        let pivot_rotation = Quat::from_rotation_z(new_clamped_angle - left_flipper.curr_angle);
-        left_flipper_transform.rotate_around(left_flipper.point_of_rotation, pivot_rotation);
-        left_flipper.curr_angle = new_clamped_angle;
+            if current_angle > flipper.min_angle {
+                angular_velocity.0 = -10.0;
+            } else {
+                angular_velocity.0 = 0.0;
+            }
+        }
     }
 }
 
 fn right_flipper_movement(
     keyboard_input: Res<ButtonInput<KeyCode>>,
-    mut right_flippers: Query<(&mut RightFlipper, &mut Transform), With<RightFlipper>>,
+    mut flippers: Query<(&RightFlipper, &Transform, &mut AngularVelocity), With<RightFlipper>>,
 ) {
-    for (mut right_flipper, mut right_flipper_transform) in right_flippers.iter_mut() {
-        let mut new_angle = right_flipper.curr_angle;
-        let change_angle = if keyboard_input.pressed(KeyCode::ArrowRight)
+    for (flipper, transform, mut angular_velocity) in flippers.iter_mut() {
+        let current_angle = transform.rotation.to_euler(EulerRot::XYZ).2;
+
+        if keyboard_input.pressed(KeyCode::ArrowRight)
             || keyboard_input.pressed(KeyCode::ShiftRight)
         {
-            -0.09
+            // TODO why do we have jitter here when reaching the max angle?
+            if current_angle > flipper.min_angle {
+                angular_velocity.0 = -15.0;
+            } else {
+                angular_velocity.0 = 0.0;
+            }
         } else {
-            0.07
-        };
-
-        new_angle += change_angle;
-        let new_clamped_angle = new_angle.clamp(-0.3, 0.3);
-        let pivot_rotation = Quat::from_rotation_z(new_clamped_angle - right_flipper.curr_angle);
-        right_flipper_transform.rotate_around(right_flipper.point_of_rotation, pivot_rotation);
-        right_flipper.curr_angle = new_clamped_angle;
+            if current_angle < flipper.max_angle {
+                angular_velocity.0 = 10.0;
+            } else {
+                angular_velocity.0 = 0.0;
+            }
+        }
     }
 }

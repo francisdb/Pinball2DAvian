@@ -12,6 +12,7 @@ impl Plugin for PinsPlugin {
     }
 }
 
+// TODO rename to Bumper
 #[derive(Component)]
 struct Pin {
     timestamp_last_hit: f64,
@@ -100,8 +101,12 @@ fn handle_pin_events(
             if let (Some(h1), Some(h2)) = (contact_event.body1, contact_event.body2)
                 && (h1 == entity || h2 == entity)
             {
-                info!("Pin collision event detected {:?}", contact_event);
-                //Respawn to change color
+                // TODO we should add some sound effect here
+                // TODO we should have the bumper expand a bit and then go back to normal size
+
+                // TODO we respawn to change color, there should be a better way?
+                //   an other option would be using bevy_light_2d to light up the pin
+
                 let pos = pin.position;
                 let timestamp_last_hit = time.elapsed_secs_f64();
                 commands.entity(entity).despawn();
