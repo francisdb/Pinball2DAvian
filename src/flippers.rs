@@ -13,16 +13,10 @@ impl Plugin for FlippersPlugin {
 }
 
 #[derive(Component)]
-struct LeftFlipper {
-    max_angle: f32,
-    min_angle: f32,
-}
+struct LeftFlipper;
 
 #[derive(Component)]
-struct RightFlipper {
-    max_angle: f32,
-    min_angle: f32,
-}
+struct RightFlipper;
 
 fn spawn_flippers(mut commands: Commands) {
     //Spawn flippers
@@ -70,22 +64,20 @@ fn spawn_flippers(mut commands: Commands) {
                 .fill(Color::BLACK)
                 .stroke((bevy::color::palettes::css::TEAL, 2.0))
                 .build(),
-            RigidBody::Kinematic,
+            RigidBody::Dynamic,
             Collider::rectangle(shape_flipper.extents.x, shape_flipper.extents.y),
             Transform::from_xyz(left_flipper_pos.x, left_flipper_pos.y, 0.0),
-            LeftFlipper {
-                max_angle: 0.3,
-                min_angle: -0.3,
-            },
+            LeftFlipper,
         ))
         .id();
 
-    commands.spawn(
+    commands.spawn((
+        Name::from("Left Flipper Joint"),
         RevoluteJoint::new(left_anchor, left_fliper)
             .with_local_anchor1(Vec2::ZERO)
             .with_local_anchor2(left_pivot)
-            .with_angle_limits(-0.3 - 0.05, 0.3 + 0.05), // to avoid jittering we add a small margin
-    );
+            .with_angle_limits(-0.3, 0.3), // to avoid jittering we add a small margin
+    ));
 
     //Spawn right flipper
     let right_flipper_pos = Vec2::new(
@@ -119,74 +111,71 @@ fn spawn_flippers(mut commands: Commands) {
                 .fill(Color::BLACK)
                 .stroke((bevy::color::palettes::css::TEAL, 2.0))
                 .build(),
-            RigidBody::Kinematic,
+            RigidBody::Dynamic,
             Collider::rectangle(shape_flipper.extents.x, shape_flipper.extents.y),
+            SleepingDisabled,
             //Restitution::from(0.999).with_combine_rule(CoefficientCombine::Max),
             Transform::from_xyz(right_flipper_pos.x, right_flipper_pos.y, 0.0),
-            RightFlipper {
-                max_angle: 0.3,
-                min_angle: -0.3,
-            },
+            RightFlipper,
         ))
         .id();
 
     // TODO test this:
     //   You can override the center of mass and set rotation speed directly on a kinematic body
 
-    commands.spawn(
+    commands.spawn((
+        Name::from("Right Flipper Joint"),
         RevoluteJoint::new(right_anchor, right_flipper)
             .with_local_anchor1(Vec2::ZERO)
             .with_local_anchor2(right_pivot)
-            .with_angle_limits(-0.3 - 0.05, 0.3 + 0.05), // to avoid jittering we add a small margin
-    );
+            // to avoid jittering we add a small margin
+            .with_angle_limits(-0.3, 0.3),
+        // JointDamping {
+        //     angular: 0.5,
+        //     ..default()
+        // },
+    ));
 }
 
 fn left_flipper_movement(
     keyboard_input: Res<ButtonInput<KeyCode>>,
-    mut flippers: Query<(&LeftFlipper, &Transform, &mut AngularVelocity), With<LeftFlipper>>,
+    mut flippers: Query<Entity, With<LeftFlipper>>,
+    mut commands: Commands,
 ) {
-    for (flipper, transform, mut angular_velocity) in flippers.iter_mut() {
-        let current_angle = transform.rotation.to_euler(EulerRot::XYZ).2;
-
+    for flipper in flippers.iter_mut() {
         if keyboard_input.pressed(KeyCode::ArrowLeft) || keyboard_input.pressed(KeyCode::ShiftLeft)
         {
-            if current_angle < flipper.max_angle {
-                angular_velocity.0 = 15.0;
-            } else {
-                angular_velocity.0 = 0.0;
-            }
+            commands
+                .entity(flipper)
+                .insert(ConstantTorque(5000000000.0));
         } else {
-            if current_angle > flipper.min_angle {
-                angular_velocity.0 = -10.0;
-            } else {
-                angular_velocity.0 = 0.0;
-            }
+            // since gravity is not pulling enough we force a torque in the opposite direction
+            //commands.entity(flipper).remove::<ConstantTorque>();
+            commands
+                .entity(flipper)
+                .insert(ConstantTorque(-1000000000.0));
         }
     }
 }
 
 fn right_flipper_movement(
     keyboard_input: Res<ButtonInput<KeyCode>>,
-    mut flippers: Query<(&RightFlipper, &Transform, &mut AngularVelocity), With<RightFlipper>>,
+    mut flippers: Query<Entity, With<RightFlipper>>,
+    mut commands: Commands,
 ) {
-    for (flipper, transform, mut angular_velocity) in flippers.iter_mut() {
-        let current_angle = transform.rotation.to_euler(EulerRot::XYZ).2;
-
+    for flipper in flippers.iter_mut() {
         if keyboard_input.pressed(KeyCode::ArrowRight)
             || keyboard_input.pressed(KeyCode::ShiftRight)
         {
-            // TODO why do we have jitter here when reaching the max angle?
-            if current_angle > flipper.min_angle {
-                angular_velocity.0 = -15.0;
-            } else {
-                angular_velocity.0 = 0.0;
-            }
+            commands
+                .entity(flipper)
+                .insert(ConstantTorque(-5000000000.0));
         } else {
-            if current_angle < flipper.max_angle {
-                angular_velocity.0 = 10.0;
-            } else {
-                angular_velocity.0 = 0.0;
-            }
+            // since gravity is not pulling enough we force a torque in the opposite direction
+            //commands.entity(flipper).remove::<ConstantTorque>();
+            commands
+                .entity(flipper)
+                .insert(ConstantTorque(1000000000.0));
         }
     }
 }
