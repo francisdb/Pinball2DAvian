@@ -25,7 +25,7 @@ fn spawn_ball(mut commands: Commands) {
         radius: crate::PIXELS_PER_METER * 0.03,
         center: Vec2::ZERO,
     };
-    let bevy_shape = Circle::new(shape_ball.radius);
+    //let bevy_shape = Circle::new(shape_ball.radius);
 
     commands.spawn((
         Name::from("Ball"),

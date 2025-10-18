@@ -66,9 +66,9 @@ fn launcher_movement(
         let mut next_ypos = launcher_transform.translation.y;
 
         if keyboard_input.pressed(KeyCode::Space) {
-            next_ypos = next_ypos + crate::PIXELS_PER_METER * 0.04;
+            next_ypos += crate::PIXELS_PER_METER * 0.04;
         } else {
-            next_ypos = next_ypos - crate::PIXELS_PER_METER * 0.04;
+            next_ypos -= crate::PIXELS_PER_METER * 0.04;
         }
         let clamped_ypos = next_ypos.clamp(
             launcher.start_point.y,

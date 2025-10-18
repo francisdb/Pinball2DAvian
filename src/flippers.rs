@@ -26,15 +26,14 @@ struct RightFlipper {
 
 fn spawn_flippers(mut commands: Commands) {
     //Spawn flippers
-    let shape_flipper: shapes::Rectangle = shapes::Rectangle {
+    let shape_flipper = shapes::Rectangle {
         extents: Vec2::new(
             crate::PIXELS_PER_METER * 0.25,
             crate::PIXELS_PER_METER * 0.05,
         ),
         origin: shapes::RectangleOrigin::Center,
         radii: None,
-    }
-    .into();
+    };
 
     //Spawn left flipper
     let left_flipper_pos = Vec2::new(
@@ -95,14 +94,14 @@ fn left_flipper_movement(
 ) {
     for (mut left_flipper, mut left_flipper_transform) in left_flippers.iter_mut() {
         let mut new_angle = left_flipper.curr_angle;
-        let change_angle: f32;
 
-        if keyboard_input.pressed(KeyCode::ArrowLeft) || keyboard_input.pressed(KeyCode::ShiftLeft)
+        let change_angle = if keyboard_input.pressed(KeyCode::ArrowLeft)
+            || keyboard_input.pressed(KeyCode::ShiftLeft)
         {
-            change_angle = 0.09;
+            0.09
         } else {
-            change_angle = -0.07;
-        }
+            -0.07
+        };
 
         new_angle += change_angle;
         let new_clamped_angle = new_angle.clamp(-0.3, 0.3);
@@ -118,14 +117,13 @@ fn right_flipper_movement(
 ) {
     for (mut right_flipper, mut right_flipper_transform) in right_flippers.iter_mut() {
         let mut new_angle = right_flipper.curr_angle;
-        let change_angle: f32;
-        if keyboard_input.pressed(KeyCode::ArrowRight)
+        let change_angle = if keyboard_input.pressed(KeyCode::ArrowRight)
             || keyboard_input.pressed(KeyCode::ShiftRight)
         {
-            change_angle = -0.09;
+            -0.09
         } else {
-            change_angle = 0.07;
-        }
+            0.07
+        };
 
         new_angle += change_angle;
         let new_clamped_angle = new_angle.clamp(-0.3, 0.3);

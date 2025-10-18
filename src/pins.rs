@@ -31,10 +31,8 @@ fn spawn_pins(mut commands: Commands) {
         Vec2::new(0.0, crate::PIXELS_PER_METER * 0.2),
     ];
 
-    for i in 0..pins_pos.len() {
-        let pin_pos = pins_pos[i];
-
-        spawn_single_pin(format!("Pin{}", i), &mut commands, pin_pos, None);
+    for (i, pin_pos) in pins_pos.iter().enumerate() {
+        spawn_single_pin(format!("Pin{}", i), &mut commands, *pin_pos, None);
     }
 }
 
@@ -48,7 +46,7 @@ fn spawn_single_pin(
         radius: crate::PIXELS_PER_METER * 0.05,
         center: Vec2::ZERO,
     };
-    let bevy_shape = Circle::new(shape_pin.radius);
+    //let bevy_shape = Circle::new(shape_pin.radius);
 
     let temp_timestamp_last_hit = timestamp_last_hit.unwrap_or(0.0);
 
@@ -70,7 +68,7 @@ fn spawn_single_pin(
         Collider::circle(shape_pin.radius),
         Pin {
             timestamp_last_hit: temp_timestamp_last_hit,
-            position: position,
+            position,
         },
     ));
 }
@@ -99,15 +97,15 @@ fn handle_pin_events(
 ) {
     for contact_event in contact_events.read() {
         for (entity, name, pin) in query.iter() {
-            if let (Some(h1), Some(h2)) = (contact_event.body1, contact_event.body2) {
-                if h1 == entity || h2 == entity {
-                    info!("Pin collision event detected {:?}", contact_event);
-                    //Respawn to change color
-                    let pos = pin.position;
-                    let timestamp_last_hit = time.elapsed_secs_f64();
-                    commands.entity(entity).despawn();
-                    spawn_single_pin(name.into(), &mut commands, pos, Some(timestamp_last_hit));
-                }
+            if let (Some(h1), Some(h2)) = (contact_event.body1, contact_event.body2)
+                && (h1 == entity || h2 == entity)
+            {
+                info!("Pin collision event detected {:?}", contact_event);
+                //Respawn to change color
+                let pos = pin.position;
+                let timestamp_last_hit = time.elapsed_secs_f64();
+                commands.entity(entity).despawn();
+                spawn_single_pin(name.into(), &mut commands, pos, Some(timestamp_last_hit));
             }
         }
     }
