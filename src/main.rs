@@ -18,8 +18,8 @@ use walls::*;
 mod launcher;
 use launcher::*;
 
-mod pins;
-use pins::*;
+mod bumpers;
+use bumpers::*;
 
 pub const PIXELS_PER_METER: f32 = 492.3;
 
@@ -45,12 +45,13 @@ fn main() {
         .add_plugins(LauncherPlugin)
         .add_plugins(FlippersPlugin)
         .add_plugins(BallPlugin)
-        .add_plugins(PinsPlugin)
+        .add_plugins(BumpersPlugin)
         .add_plugins(ShapePlugin)
         .add_systems(Startup, setup)
         .add_plugins(PhysicsPlugins::default().with_length_unit(PIXELS_PER_METER))
         .insert_resource(Gravity(Vector::NEG_Y * 520.0))
         //.insert_resource(Gravity(Vector::NEG_Y * 9.81 * 100.0))
+        // without this increased substep count, the ball sinks even deeper though flippers and launcher
         .insert_resource(SubstepCount(50))
         // .add_plugins(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(
         //     PIXELS_PER_METER,

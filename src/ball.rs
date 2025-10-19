@@ -13,7 +13,7 @@ impl Plugin for BallPlugin {
 }
 
 #[derive(Component)]
-struct Ball;
+pub(crate) struct Ball;
 
 fn spawn_ball(mut commands: Commands) {
     let ball_pos = Vec2::new(
@@ -36,7 +36,8 @@ fn spawn_ball(mut commands: Commands) {
         Transform::from_xyz(ball_pos.x, ball_pos.y, 0.0),
         Collider::circle(shape_ball.radius),
         CollisionEventsEnabled,
-        Restitution::from(0.7),
+        Restitution::from(0.4),
+        Friction::from(0.2),
         // a standard pinball ball mass is about 80 grams
         Mass::from(0.08),
         //MassPropertiesBundle::from_shape(&bevy_shape, 10.0),

@@ -2,6 +2,14 @@ use avian2d::prelude::*;
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 
+const FLIPPER_ENABLED_TORQUE: f32 = 1500000.0;
+const FLIPPER_DISABLED_TORQUE: f32 = -500000.0;
+
+// Typical pinball flipper extents involve a maximum upward swing of about 20 degrees for each flipper,
+// and a swing of 55-60 degrees from their resting position.
+const FLIPPER_MAX_UP_ANGLE: f32 = 20.0_f32.to_radians();
+const FLIPPER_MAX_DOWN_ANGLE: f32 = 35.0_f32.to_radians();
+
 pub struct FlippersPlugin;
 
 impl Plugin for FlippersPlugin {
@@ -35,8 +43,8 @@ fn spawn_flippers(mut commands: Commands) {
         crate::PIXELS_PER_METER * -0.4,
     );
     let left_pivot = Vec2::new(
-        -shape_flipper.extents.x / 2.0,
-        shape_flipper.extents.y / 2.0,
+        -shape_flipper.extents.x / 2.0 + shape_flipper.extents.y / 2.0,
+        0.0,
     );
 
     let left_anchor = commands
@@ -52,7 +60,7 @@ fn spawn_flippers(mut commands: Commands) {
             Transform::from_xyz(
                 left_flipper_pos.x + left_pivot.x,
                 left_flipper_pos.y + left_pivot.y,
-                0.0,
+                0.1,
             ),
         ))
         .id();
@@ -66,9 +74,10 @@ fn spawn_flippers(mut commands: Commands) {
                 .build(),
             RigidBody::Dynamic,
             Collider::rectangle(shape_flipper.extents.x, shape_flipper.extents.y),
-            SleepingDisabled,
+            //SleepingDisabled,
+            Mass::from(1.0),
             // flippers have rubbers that make them bouncy
-            Restitution::from(0.5),
+            Restitution::from(0.4),
             Transform::from_xyz(left_flipper_pos.x, left_flipper_pos.y, 0.0),
             LeftFlipper,
         ))
@@ -79,7 +88,7 @@ fn spawn_flippers(mut commands: Commands) {
         RevoluteJoint::new(left_anchor, left_fliper)
             .with_local_anchor1(Vec2::ZERO)
             .with_local_anchor2(left_pivot)
-            .with_angle_limits(-0.3, 0.3), // to avoid jittering we add a small margin
+            .with_angle_limits(-FLIPPER_MAX_DOWN_ANGLE, FLIPPER_MAX_UP_ANGLE), // to avoid jittering we add a small margin
     ));
 
     //Spawn right flipper
@@ -87,7 +96,10 @@ fn spawn_flippers(mut commands: Commands) {
         crate::PIXELS_PER_METER * 0.1,
         crate::PIXELS_PER_METER * -0.4,
     );
-    let right_pivot = Vec2::new(shape_flipper.extents.x / 2.0, shape_flipper.extents.y / 2.0);
+    let right_pivot = Vec2::new(
+        shape_flipper.extents.x / 2.0 - shape_flipper.extents.y / 2.0,
+        0.0,
+    );
 
     let right_anchor = commands
         .spawn((
@@ -102,7 +114,7 @@ fn spawn_flippers(mut commands: Commands) {
             Transform::from_xyz(
                 right_flipper_pos.x + right_pivot.x,
                 right_flipper_pos.y + right_pivot.y,
-                0.0,
+                0.1,
             ),
         ))
         .id();
@@ -116,7 +128,8 @@ fn spawn_flippers(mut commands: Commands) {
                 .build(),
             RigidBody::Dynamic,
             Collider::rectangle(shape_flipper.extents.x, shape_flipper.extents.y),
-            SleepingDisabled,
+            //SleepingDisabled,
+            Mass::from(1.0),
             // flippers have rubbers that make them bouncy
             Restitution::from(0.5),
             Transform::from_xyz(right_flipper_pos.x, right_flipper_pos.y, 0.0),
@@ -133,7 +146,7 @@ fn spawn_flippers(mut commands: Commands) {
             .with_local_anchor1(Vec2::ZERO)
             .with_local_anchor2(right_pivot)
             // to avoid jittering we add a small margin
-            .with_angle_limits(-0.3, 0.3),
+            .with_angle_limits(-FLIPPER_MAX_UP_ANGLE, FLIPPER_MAX_DOWN_ANGLE),
         // JointDamping {
         //     angular: 0.5,
         //     ..default()
@@ -151,13 +164,13 @@ fn left_flipper_movement(
         {
             commands
                 .entity(flipper)
-                .insert(ConstantTorque(5000000000.0));
+                .insert(ConstantTorque(FLIPPER_ENABLED_TORQUE));
         } else {
             // since gravity is not pulling enough we force a torque in the opposite direction
             //commands.entity(flipper).remove::<ConstantTorque>();
             commands
                 .entity(flipper)
-                .insert(ConstantTorque(-1000000000.0));
+                .insert(ConstantTorque(FLIPPER_DISABLED_TORQUE));
         }
     }
 }
@@ -173,13 +186,13 @@ fn right_flipper_movement(
         {
             commands
                 .entity(flipper)
-                .insert(ConstantTorque(-5000000000.0));
+                .insert(ConstantTorque(-FLIPPER_ENABLED_TORQUE));
         } else {
             // since gravity is not pulling enough we force a torque in the opposite direction
             //commands.entity(flipper).remove::<ConstantTorque>();
             commands
                 .entity(flipper)
-                .insert(ConstantTorque(1000000000.0));
+                .insert(ConstantTorque(-FLIPPER_DISABLED_TORQUE));
         }
     }
 }
