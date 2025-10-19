@@ -66,6 +66,9 @@ fn spawn_flippers(mut commands: Commands) {
                 .build(),
             RigidBody::Dynamic,
             Collider::rectangle(shape_flipper.extents.x, shape_flipper.extents.y),
+            SleepingDisabled,
+            // flippers have rubbers that make them bouncy
+            Restitution::from(0.5),
             Transform::from_xyz(left_flipper_pos.x, left_flipper_pos.y, 0.0),
             LeftFlipper,
         ))
@@ -114,7 +117,8 @@ fn spawn_flippers(mut commands: Commands) {
             RigidBody::Dynamic,
             Collider::rectangle(shape_flipper.extents.x, shape_flipper.extents.y),
             SleepingDisabled,
-            //Restitution::from(0.999).with_combine_rule(CoefficientCombine::Max),
+            // flippers have rubbers that make them bouncy
+            Restitution::from(0.5),
             Transform::from_xyz(right_flipper_pos.x, right_flipper_pos.y, 0.0),
             RightFlipper,
         ))
