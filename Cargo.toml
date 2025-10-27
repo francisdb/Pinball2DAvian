@@ -7,7 +7,7 @@ edition = "2024"
 bevy = "0.17.2"
 avian2d = { version = "0.4.0", features = ["diagnostic_ui"] }
 bevy_prototype_lyon = "0.15.0"
-bevy-inspector-egui = "0.34.0"
+bevy-inspector-egui = "0.35.0"
 ## Enable a small amount of optimization in the dev profile.
 #[profile.dev]
 #opt-level = 1
