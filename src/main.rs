@@ -1,4 +1,5 @@
 use avian2d::PhysicsPlugins;
+use avian2d::dynamics::solver::SolverConfig;
 use avian2d::math::Vector;
 use avian2d::prelude::*;
 use bevy::{prelude::*, window::PresentMode};
@@ -50,12 +51,17 @@ fn main() {
         .add_systems(Startup, setup)
         .add_plugins(PhysicsPlugins::default().with_length_unit(PIXELS_PER_METER))
         .insert_resource(Gravity(Vector::NEG_Y * 520.0))
-        //.insert_resource(Gravity(Vector::NEG_Y * 9.81 * 100.0))
         // without this increased substep count, the ball sinks even deeper though flippers and launcher
-        .insert_resource(SubstepCount(50))
-        // .add_plugins(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(
-        //     PIXELS_PER_METER,
-        // ))
+        .insert_resource(SubstepCount(20))
+        // Stiffer contacts so the pulled-down plunger's spring/force load doesn't
+        // leak through Avian's soft contacts and let the ball sink into the head.
+        .insert_resource(SolverConfig {
+            contact_frequency_factor: 10.0,
+            // Default threshold is ~492 px/s at this length unit, so slow hits don't bounce
+            // and the ball feels glued; lower it so it bounces realistically at low speed.
+            restitution_threshold: 0.05,
+            ..default()
+        })
         .add_systems(Update, exit_on_escape)
         .run();
 }

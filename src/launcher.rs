@@ -86,11 +86,7 @@ fn launcher_movement(
     keyboard_input: Res<ButtonInput<KeyCode>>,
     mut launchers: Query<(&Launcher, &Transform, &mut ConstantForce), With<Launcher>>,
 ) {
-    // Force increase in Newtons to pull launcher down
-    // TODO why does this need to be so high? In real life a pinball launcher spring is much weaker yet
-    //   it spings back fast enough.
-    //   A hand can pull between 50 and 100 N easily, but we have to pull 20000 N here to get a good effect.
-    // TODO why is the ball pulled into the launcher while we pull it down?
+    // Per-frame pull force in Avian's own units (mass * px/s^2, not Newtons); accumulates while Enter is held.
     const PULL_FORCE: f32 = 200.0;
     // Maximum pull distance in meters
     const MAX_PULL_DISTANCE: f32 = 0.08;
@@ -102,7 +98,6 @@ fn launcher_movement(
             // Apply downward force if not at max stretch
             if current_offset > -crate::PIXELS_PER_METER * MAX_PULL_DISTANCE {
                 constant_force.y -= PULL_FORCE;
-                println!("Pulling launcher down: force.y = {}", constant_force.y);
             }
         } else {
             // Release: clear force and let the spring push it back

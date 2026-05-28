@@ -36,7 +36,9 @@ fn spawn_ball(mut commands: Commands) {
         Transform::from_xyz(ball_pos.x, ball_pos.y, 0.0),
         Collider::circle(shape_ball.radius),
         CollisionEventsEnabled,
-        Restitution::from(0.4),
+        // Max combine rule so the ball keeps its own bounciness off walls that set no Restitution
+        // (default Average would halve it against a 0.0 wall).
+        Restitution::new(0.4).with_combine_rule(CoefficientCombine::Max),
         Friction::from(0.2),
         // a standard pinball ball mass is about 80 grams
         Mass::from(0.08),
