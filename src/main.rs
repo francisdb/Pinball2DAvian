@@ -22,6 +22,9 @@ use launcher::*;
 mod bumpers;
 use bumpers::*;
 
+mod nudge;
+use nudge::*;
+
 pub const PIXELS_PER_METER: f32 = 492.3;
 
 fn main() {
@@ -47,6 +50,7 @@ fn main() {
         .add_plugins(FlippersPlugin)
         .add_plugins(BallPlugin)
         .add_plugins(BumpersPlugin)
+        .add_plugins(NudgePlugin)
         .add_plugins(ShapePlugin)
         .add_systems(Startup, setup)
         .add_plugins(PhysicsPlugins::default().with_length_unit(PIXELS_PER_METER))

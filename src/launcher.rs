@@ -60,7 +60,9 @@ fn spawn_launcher(mut commands: Commands) {
             Collider::rectangle(shape_launcher.extents.x, shape_launcher.extents.y),
             Transform::from_xyz(launcher_pos.x, launcher_pos.y, 0.0),
             ConstantForce::new(0.0, 0.0),
-            LockedAxes::ROTATION_LOCKED,
+            // Lock rotation and sideways motion so the plunger only slides along its
+            // vertical rail; without the X lock a side nudge wobbles it off-axis.
+            LockedAxes::ROTATION_LOCKED.lock_translation_x(),
             Mass::from(0.2), // Light mass for responsive spring
             Launcher {
                 start_point: launcher_pos,
