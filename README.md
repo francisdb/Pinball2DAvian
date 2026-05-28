@@ -10,6 +10,20 @@ git clone https://github.com/francisdb/Pinball2DAvian.git
 cargo run --release
 ```
 
+## Controls
+
+| Key | Action |
+| --- | --- |
+| Left Shift / Left Arrow | Left flipper |
+| Right Shift / Right Arrow | Right flipper |
+| Enter | Hold to pull the plunger back, release to launch |
+| Z | Nudge left |
+| / | Nudge right |
+| Space | Nudge (center) |
+| Escape | Quit |
+
+Nudge keys mirror Visual Pinball's defaults.
+
 <img src="/Screenshot_pinball2d.png?raw=true" width="200">
 
 https://user-images.githubusercontent.com/5881978/135753714-fb8e7d7a-0752-43d7-84ed-c8a90e5d85c7.mov
